@@ -1,0 +1,3 @@
+name,port,node,address,netmask,vserver,destination,gateway,role
+lif1,e0f,cluster1-01,192.168.0.189,255.255.255.0,svm01,0.0.0.0/0,192.168.0.1,data
+lif2,e0f,cluster1-02,192.168.0.179,255.255.255.0,svm02,0.0.0.0/0,192.168.0.1,data

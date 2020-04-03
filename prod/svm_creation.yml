@@ -1,0 +1,47 @@
+#########################################################################################################################################
+---
+- hosts: localhost
+  gather_facts: false
+  name: NetApp SVM Setup
+  vars:
+    login: &login
+     hostname: "{{ prod_cluster_IP }}"
+     username: "{{ user }}"
+     password: "{{ pass }}"
+     https: "{{ https_option }}"
+     validate_certs: "{{ validate_certs_option }}"
+  vars_files:
+  - variables.yml
+  tasks:
+      - name: "Reading SVM information"
+        read_csv:
+          path: svm_sheet.csv
+        register: svm_sheet
+
+      - name: SVM Creation
+        na_ontap_svm:
+          state: present
+          name: "{{ item.name }}"
+          root_volume: "{{ item.name }}_root"
+          root_volume_aggregate: "{{ item.root_vol_aggr }}" 
+          root_volume_security_style: "{{ item.root_vol_sec }}"
+          aggr_list: "{{ item.root_vol_aggr }}"
+          allowed_protocols: "{{ allowedprotocols }}"
+          <<: *login
+        loop: "{{ svm_sheet.list }}"
+        loop_control:
+          loop_var: item
+
+      - name: Add DNS Settings to SVM
+        na_ontap_dns:
+          state: present
+          vserver: "{{item.name }}"
+          domains: "{{ dnsdomain }}"
+          nameservers: "{{ dnsservers }}"
+          skip_validation: true
+          <<: *login
+        loop: "{{ svm_sheet.list }}"
+        loop_control:
+          loop_var: item
+
+      - debug: msg="The SVMs have been created"

@@ -1,0 +1,3 @@
+name,flexvol_name,policyname,secstyle,vserver
+qtree1,vol01,ep1,unix,svm01
+qtree2,vol02,ep2,unix,svm02

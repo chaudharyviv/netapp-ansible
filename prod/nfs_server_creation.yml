@@ -1,0 +1,34 @@
+#########################################################################################################################################
+---
+- hosts: localhost
+  gather_facts: false
+  name: NetApp NFS Server Creation
+  vars:
+    login: &login
+     hostname: "{{ prod_cluster_IP }}"
+     username: "{{ user }}"
+     password: "{{ pass }}"
+     https: "{{ https_option }}"
+     validate_certs: "{{ validate_certs_option }}"
+  vars_files:
+  - variables.yml
+  tasks:
+      - name: "Reading NFS server information"
+        read_csv:
+          path: nfs_sheet.csv
+        register: nfs_sheet
+
+      - name: Create nfs_server
+        na_ontap_nfs:
+          state: present
+          service_state: started
+          vserver: "{{ item.vserver }}"
+          nfsv3: "{{ item.nfsv3 }}"
+          nfsv4: "{{ item.nfsv4 }}"
+          vstorage_state: "{{ item.vstorage }}"
+          <<: *login
+        loop: "{{ nfs_sheet.list }}"
+        loop_control:
+          loop_var: item
+
+      - debug: msg="The NFS service have been created"

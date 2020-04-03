@@ -1,0 +1,3 @@
+name,root_vol_aggr,root_vol_sec
+svm01,aggr01_cluster1_01,unix
+svm02,aggr01_cluster1_02,ntfs
