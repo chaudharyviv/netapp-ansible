@@ -1,0 +1,2 @@
+cifs_server_name,admin_user,admin_password,vserver
+svm01-fs,Administrator,Netapp1!,svm02

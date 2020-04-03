@@ -1,0 +1,3 @@
+vserver,nfsv3,nfsv4,vstorage
+svm01,enabled,disabled,enabled
+svm02,enabled,disabled,enabled

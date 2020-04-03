@@ -1,0 +1,35 @@
+#########################################################################################################################################
+---
+- hosts: localhost
+  gather_facts: false
+  name: NetApp CIFS Server Creation
+  vars:
+    login: &login
+     hostname: "{{ prod_cluster_IP }}"
+     username: "{{ user }}"
+     password: "{{ pass }}"
+     https: "{{ https_option }}"
+     validate_certs: "{{ validate_certs_option }}"
+  vars_files:
+  - variables.yml
+  tasks:
+      - name: "Reading CIFS server information"
+        read_csv:
+          path: cifs_sheet.csv
+        register: cifs_sheet
+
+      - name: Create cifs_server
+        na_ontap_cifs_server:
+          state: present
+          cifs_server_name: "{{ item.cifs_server_name}}"
+          admin_user_name: "{{ item.admin_user }}"
+          admin_password: "{{ item.admin_password }}"
+          vserver: "{{ item.vserver }}"
+          service_state: started 
+          domain: "{{ dnsdomain }}"
+          <<: *login
+        loop: "{{ cifs_sheet.list }}"
+        loop_control:
+          loop_var: item
+
+      - debug: msg="The CIFS service have been created"

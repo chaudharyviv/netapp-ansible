@@ -1,0 +1,2 @@
+src_vol,src_dest,src_vserver,dest_vserver,policy
+vol01,vol01_dr,svm01,svm01_dr,MirrorAllSnapshots

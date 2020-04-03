@@ -1,0 +1,36 @@
+#########################################################################################################################################
+---
+- hosts: localhost
+  gather_facts: false
+  name: NetApp QTREE Setup
+  vars:
+    login: &login
+     hostname: "{{ prod_cluster_IP }}"
+     username: "{{ user }}"
+     password: "{{ pass }}"
+     https: "{{ https_option }}"
+     validate_certs: "{{ validate_certs_option }}"
+  vars_files:
+  - variables.yml
+  tasks:
+      - name: "Reading qtree information"
+        read_csv:
+          path: qtree_sheet.csv
+        register: qtree_sheet
+
+      - name: qtree Creation for volumes
+        na_ontap_qtree:
+          state: present
+          name: "{{ item.name }}"
+          flexvol_name: "{{ item.flexvol_name }}"
+          export_policy: "{{ item.policyname }}" 
+          security_style: "{{ item.secstyle }}"
+          oplocks: disabled
+          unix_permissions:
+          vserver: "{{ item.vserver}}"
+          <<: *login
+        loop: "{{ qtree_sheet.list }}"
+        loop_control:
+          loop_var: item
+
+      - debug: msg="The qtrees have been created"

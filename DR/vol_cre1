@@ -1,0 +1,41 @@
+#########################################################################################################################################
+---
+- hosts: localhost
+  gather_facts: false
+  name: NetApp volume Creation
+  vars:
+    login: &login
+     hostname: "{{ prod_cluster_IP }}"
+     username: "{{ user }}"
+     password: "{{ pass }}"
+     https: "{{ https_option }}"
+     validate_certs: "{{ validate_certs_option }}"
+  vars_files:
+  - variables.yml
+  tasks:
+      - name: "Reading volume information"
+        read_csv:
+          path: volume_sheet.csv
+        register: volume_sheet
+
+      - name: Creation for volumes
+        na_ontap_volume:
+          state: present
+          name: "{{ item.name }}"
+          is_infinite: False
+          aggregate_name: "{{ item.aggr_name }}"
+          size: "{{ item.size }}"
+          size_unit: gb
+          tiering_policy: auto
+          policy: default
+          percent_snapshot_space: 10
+          vserver: "{{ item.vserver}}"
+          wait_for_completion: True
+          space_slo: none
+          nvfail_enabled: False
+          <<: *login
+        loop: "{{ volume_sheet.list }}"
+        loop_control:
+          loop_var: item
+
+      - debug: msg="The volumes have been created"

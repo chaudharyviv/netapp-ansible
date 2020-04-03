@@ -1,0 +1,34 @@
+#########################################################################################################################################
+---
+- hosts: localhost
+  gather_facts: false
+  name: NetApp Aggregate Setup
+  vars:
+    login: &login
+     hostname: "{{ prod_cluster_IP }}"
+     username: "{{ user }}"
+     password: "{{ pass }}"
+     https: "{{ https_option }}"
+     validate_certs: "{{ validate_certs_option }}"
+  vars_files:
+  - variables.yml
+  tasks:
+      - name: "Reading Aggregate information"
+        read_csv:
+          path: aggr_sheet.csv
+        register: aggr_sheet
+      - name: "Creating Aggregates on both nodes"
+        na_ontap_aggregate:
+          state: present
+          service_state: online
+          name: "{{ item.name }}"
+          nodes: "{{ item.nodes }}"
+          disk_count: "{{ item.diskcount }}"
+          wait_for_online: true
+          time_out: 300
+          <<: *login
+        loop: "{{ aggr_sheet.list }}"
+        loop_control:
+          loop_var: item
+  
+      - debug: msg="Aggregates have been created"

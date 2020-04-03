@@ -1,0 +1,38 @@
+#########################################################################################################################################
+---
+- hosts: localhost
+  gather_facts: false
+  name: NetApp snapmirror Creation
+  vars:
+    login: &login
+     hostname: "{{ prod_cluster_IP }}"
+     username: "{{ user }}"
+     password: "{{ pass }}"
+     https: "{{ https_option }}"
+     validate_certs: "{{ validate_certs_option }}"
+  vars_files:
+  - variables.yml
+  tasks:
+      - name: "Reading snapmirror information"
+        read_csv:
+          path: snapmirror_sheet.csv
+        register: snapmirror_sheet
+
+      - name: snapmirror Creation for snapmirrors
+        na_ontap_snapmirror:
+          state: present
+          source_volume: "{{ item.src_vol }}"
+          destination_volume: "{{ item.src_dest }}"
+          source_vserver: "{{ item.src_vserver }}"
+          destination_vserver: "{{ item.dest_vserver }}"
+          schedule: hourly
+          policy: "{{ item.policy }}"
+          <<: *login
+        loop: "{{ snapmirror_sheet.list }}"
+        loop_control:
+          loop_var: item
+
+          
+          
+      - debug: msg="The snapmirrors have been created"
+

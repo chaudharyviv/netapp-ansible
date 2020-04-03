@@ -1,0 +1,48 @@
+#########################################################################################################################################
+---
+- hosts: localhost
+  gather_facts: false
+  name: NetApp volume Deletion
+  vars:
+    login: &login
+     hostname: "{{ prod_cluster_IP }}"
+     username: "{{ user }}"
+     password: "{{ pass }}"
+     https: "{{ https_option }}"
+     validate_certs: "{{ validate_certs_option }}"
+  vars_files:
+  - variables.yml
+  tasks:
+      - name: "Reading volume information"
+        read_csv:
+          path: volume_del_sheet.csv
+        register: volume_del_sheet
+
+      - name: volume offline
+        na_ontap_volume:
+          state: present
+          name: "{{ item.name }}"
+          is_infinite: False
+          is_online: False
+          vserver: "{{ item.vserver}}"
+          <<: *login
+        loop: "{{ volume_del_sheet.list }}"
+        loop_control:
+          loop_var: item
+
+
+      - name: volume delete
+        na_ontap_volume:
+          state: absent
+          name: "{{ item.name }}"
+          aggregate_name: "{{ item.aggr_name }}" 
+          vserver: "{{ item.vserver}}"
+          <<: *login
+        loop: "{{ volume_del_sheet.list }}"
+        loop_control:
+          loop_var: item
+
+
+      - debug: msg="The volumes have been deleted"
+
+

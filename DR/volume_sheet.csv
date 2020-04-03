@@ -1,0 +1,2 @@
+name,aggr_name,size,vserver
+vol01_dr,aggr01_cluster2_01,10,svm01_dr

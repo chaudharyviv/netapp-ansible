@@ -1,0 +1,49 @@
+####### using Admin Credentials for Access #########
+#### NTP, DNS, Timezone and Autosupport setup on PROD  Cluster #####
+---
+- hosts: localhost
+  gather_facts: false
+  name: Initial setup
+  vars:
+    login: &login
+     hostname: "{{ prod_cluster_IP }}"
+     username: "{{ user }}"
+     password: "{{ pass }}"
+     https: "{{ https_option }}"
+     validate_certs: "{{ validate_certs_option }}"
+  vars_files:
+  - variables.yml
+  tasks:
+  - name: Set NTP
+    na_ontap_ntp:
+      state: present
+      version: auto 
+      server_name: "{{ntp_server_name}}"
+      <<: *login
+  - name: Set Timezone
+    na_ontap_command:
+      command: ['cluster', 'date', 'modify', '-timezone', '"{{ timezone }}"']
+      privilege: admin
+      <<: *login
+  - name: Set DNS on cluster
+    na_ontap_dns:
+      state: present
+      vserver: "{{ prod_clustername }}"
+      domains: "{{ dnsdomain }}"
+      nameservers: "{{ dnsservers }}"
+      skip_validation: true
+      <<: *login
+  - name: Configure AutoSupport
+    na_ontap_autosupport:
+      state: present
+      node_name: "{{ item }}"
+      transport: https
+      noteto: abc@abc.com
+      mail_hosts: "{{mail_hosts}}" 
+      support: False
+      post_url: url/1.0/post
+      <<: *login
+    with_items:
+      - cluster2-01
+  - debug: msg="The NTP Server {{ntp_server_name}},DNS Server {{ dnsdomain }} , AutoSupport is configured on {{ prod_clustername }}"
+

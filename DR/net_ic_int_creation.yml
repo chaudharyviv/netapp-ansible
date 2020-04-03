@@ -1,0 +1,50 @@
+#########################################################################################################################################
+---
+- hosts: localhost
+  gather_facts: false
+  name: NetApp volume Creation
+  vars:
+    login: &login
+     hostname: "{{ prod_cluster_IP }}"
+     username: "{{ user }}"
+     password: "{{ pass }}"
+     https: "{{ https_option }}"
+     validate_certs: "{{ validate_certs_option }}"
+  vars_files:
+  - variables.yml
+  tasks:
+      - name: "Reading Network Interface information"
+        read_csv:
+          path: net_ic_int_sheet.csv
+        register: net_ic_int_sheet
+
+      - name: Creation for interfaces
+        na_ontap_interface:
+          state: present
+          interface_name: "{{ item.name }}"
+          home_port: "{{ item.port }}"
+          home_node: "{{ item.node }}"
+          role: "{{ item.role}}"
+          admin_status: up
+          address: "{{ item.address }}"
+          netmask: "{{ item.netmask }}"
+          vserver: "{{ item.vserver }}"
+          <<: *login
+        loop: "{{ net_ic_int_sheet.list }}"
+        loop_control:
+          loop_var: item
+
+      - name: Create Routes
+        na_ontap_net_routes:
+          state: present
+          vserver: "{{ item.vserver }}"
+          destination: "{{ item.destination }}"
+          gateway: "{{ item.gateway }}"
+          metric: 20
+          <<: *login
+        loop: "{{ net_ic_int_sheet.list }}"
+        loop_control:
+          loop_var: item
+
+
+      - debug: msg="The InterCluster Network Interfaces have been created"

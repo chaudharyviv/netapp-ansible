@@ -1,0 +1,39 @@
+##########################################################
+# Variable File for 'netapp_installation_final.yml' #
+##########################################################
+
+# Varibales for Prod Cluster login
+prod_cluster_IP: 192.168.0.102
+user: admin
+pass: Netapp1!
+https_option: true
+validate_certs_option: false
+dnsdomain: demo.netapp.com
+dnsservers: 192.168.0.253
+
+# Variables for 'prod_cluster_initial_setup.yml'
+prod_clustername: cluster2
+ntp_server_name: 192.168.0.253
+timezone: Etc/GMT-1
+mail_hosts: 10.10.101.100,10.10.101.111
+
+# Variables for 'svm_creation.yml'
+allowedprotocols: nfs,cifs
+
+# Variables for 'network_setup.yml'
+ports:
+  - { node: cluster2-01 , port: e0d, mtu: 9000 , flowcontrol: none, autonegotiate: true}
+  - { node: cluster2-01 , port: e0e, mtu: 9000 , flowcontrol: none, autonegotiate: true}
+  - { node: cluster2-02 , port: e0d, mtu: 9000 , flowcontrol: none, autonegotiate: true}
+  - { node: cluster2-02 , port: e0e, mtu: 9000 , flowcontrol: none, autonegotiate: true}
+
+ifgrps:
+  - { name: a0a, node: cluster2-01 , ports: [e0d,e0e], mode: multimode, distribution_function: ip}
+  - { name: a0a, node: cluster2-02 , ports: [e0d,e0e], mode: multimode, distribution_function: ip}
+
+vlans:
+  - { vlanid: 10, node: cluster2-01 , phy_interface: a0a }
+  - { vlanid: 10, node: cluster2-02 , phy_interface: a0a }
+
+bcasts:
+  - { name: prod_bcast_10, ports: [cluster2-02:a0a-10,cluster2-01:a0a-10 ], mtu: 1500 }

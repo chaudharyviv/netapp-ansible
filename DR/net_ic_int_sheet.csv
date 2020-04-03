@@ -1,0 +1,2 @@
+name,port,node,address,netmask,vserver,destination,gateway,role
+ic_lif1,e0g,cluster2-01,192.168.0.210,255.255.255.0,cluster2,0.0.0.0/0,192.168.0.1,intercluster

@@ -1,0 +1,61 @@
+#########################################################################################################################################
+---
+- hosts: localhost
+  gather_facts: false
+  name: NetApp Network Setup
+  vars:
+    login: &login
+     hostname: "{{ prod_cluster_IP }}"
+     username: "{{ user }}"
+     password: "{{ pass }}"
+     https: "{{ https_option }}"
+     validate_certs: "{{ validate_certs_option }}"
+  vars_files:
+  - variables.yml
+  tasks:
+      - name: Remove Ports from Default Broadcast Domain
+        na_ontap_broadcast_domain_ports:
+          state: absent
+          broadcast_domain: "Default"
+          ports: "{{ item.node }}:{{ item.port }}"
+          <<: *login
+        with_items:
+          "{{ ports }}"
+        when: ports != None
+
+      - name: Interface Group Creation
+        na_ontap_net_ifgrp:
+          state: present
+          name: "{{ item.name }}"
+          ports: "{{ item.ports }}"
+          mode: "{{ item.mode }}" 
+          distribution_function: ip
+          node: "{{ item.node }}"
+          <<: *login
+        with_items:
+          "{{ ifgrps }}"
+        when: ifgrps != None
+      - name: VLAN Creation
+        na_ontap_net_vlan:
+          state: present
+          vlanid: "{{ item.vlanid }}"
+          node: "{{ item.node }}"
+          parent_interface: "{{ item.phy_interface }}"
+          <<: *login
+        with_items:
+          "{{ vlans }}"
+        when: vlans != none
+      - name: create broadcast domain
+        na_ontap_broadcast_domain:
+          state: present
+          name: "{{item.name}}"
+          mtu: "{{item.mtu}}"
+          ipspace: Default
+          #ports: ["cluster1-01:a0a-10", "cluster1-02:a0a-10"]
+          ports: "{{item.ports}}"
+          <<: *login
+        with_items:
+          "{{ bcasts }}"
+        when: bcasts != None
+
+      - debug: msg="The Network setup have been created"
